@@ -3,7 +3,6 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const path = require("path");
-
 const app = express();
 
 app.use(express.json());
@@ -18,11 +17,16 @@ mongoose
     console.error("MongoDB connection error:", err);
   });
 
+app.use("/assets", express.static(path.join(__dirname, "assets")));
 
+app.get("/signup", (req, res) => {
+  res.sendFile(path.join(__dirname, "views/pages", "signup.html"));
+});
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "views/pages", "login.html"));
+});
 app.use("/auth", require("./routes/auth")); 
 
-
-app.use(express.static( "views")); 
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

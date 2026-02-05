@@ -132,7 +132,7 @@ async function sendOtp() {
     if (res.ok) {
       showMessage(data.message || 'OTP sent', 'success');
       document.getElementById('otpBox').classList.remove('hidden');
-      startResendTimer(30); // prevent immediate resend for 30s
+      startResendTimer(120); // prevent immediate resend for 30s
     } else {
       showMessage(data.message || 'Error sending OTP', 'error');
       sendBtn.disabled = false;
@@ -181,7 +181,7 @@ async function verifyOtp() {
 
     if (res.ok) {
       // Optionally redirect or clear the form on successful verification
-      window.location.href = '/login.html';
+      window.location.href = '/login';
     }
   } catch (err) {
     showMessage('Verification failed. Please try again.', 'error');

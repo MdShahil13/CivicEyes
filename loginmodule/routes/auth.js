@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const sendOTP = require("../utils/mailer");
-const User = require("../utils/models/user");
+const User = require("../models/user");
 
 const router = express.Router();
 
@@ -22,25 +22,23 @@ router.post("/signup", async (req, res) => {
 
   signupOtpStore[email] = {
     otp,
+    username: req.body.username,
     password,
     regType,
-    expiresAt: Date.now() + 5 * 60 * 1000 // 5 min
+    expiresAt: Date.now() + 2 * 60 * 1000 
   };
 
   try {
-    // send email asynchronously and respond immediately to avoid client delay
     sendOTP(email, otp)
       .then(() => console.log(`OTP sent to ${email}`))
       .catch((err) => console.error('OTP send failed for', email, err));
 
     res.json({ message: "OTP send initiated" });
   } catch {
-    // shouldn't reach here because sendOTP is not awaited, but keep fallback
     res.status(500).json({ message: "OTP sending failed" });
   }
 });
 
-// VERIFY OTP & SAVE USER
 router.post("/signup-verify", async (req, res) => {
   const { email, otp } = req.body;
 
@@ -58,6 +56,7 @@ router.post("/signup-verify", async (req, res) => {
   const hashedPassword = await bcrypt.hash(record.password, 10);
 
   await User.create({
+    username: record.username,
     email,
     password: hashedPassword,
     regType: record.regType
