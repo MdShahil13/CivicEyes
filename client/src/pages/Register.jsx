@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
 import Button from "../components/common/Button";
@@ -18,6 +19,7 @@ const Register = () => {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -36,7 +38,7 @@ const Register = () => {
     setMessage({ type: "", text: "" });
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/send-otp", {
+      const response = await fetch("http://localhost:5000/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email }),
@@ -62,21 +64,39 @@ const Register = () => {
       setMessage({ type: "error", text: "Please enter the OTP." });
       return;
     }
+
+    if (!formData.fullName || !formData.password) {
+      setMessage({ type: "error", text: "Please complete name and password." });
+      return;
+    }
+
+    if (role === "helper" && !formData.category) {
+      setMessage({ type: "error", text: "Please select a category to register as helper." });
+      return;
+    }
+
     setLoading(true);
     setMessage({ type: "", text: "" });
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/verify-otp", {
+      const response = await fetch("http://localhost:5000/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formData.email, otp }),
+        body: JSON.stringify({
+          email: formData.email,
+          otp,
+          fullName: formData.fullName,
+          password: formData.password,
+          role,
+          category: formData.category,
+          village: formData.village,
+        }),
       });
       const data = await response.json();
 
       if (response.ok) {
-        setMessage({ type: "success", text: "Registration verified and successful!" });
-        console.log("Register Data:", { role, ...formData });
-        // Optional: redirect to login
+        setMessage({ type: "success", text: "Registration successful! Redirecting to login..." });
+        setTimeout(() => navigate("/login"), 1200);
       } else {
         setMessage({ type: "error", text: data.message || "Invalid OTP" });
       }

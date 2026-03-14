@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
-import InputField from "../components/common/InputField";
 import Button from "../components/common/Button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: "", text: "" });
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -18,9 +20,38 @@ const Login = () => {
     }));
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("Login Data:", formData);
+
+    if (!formData.email || !formData.password) {
+      setMessage({ type: "error", text: "Please enter email and password." });
+      return;
+    }
+
+    setLoading(true);
+    setMessage({ type: "", text: "" });
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ type: "success", text: "Login successful! Redirecting..." });
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setTimeout(() => navigate("/home"), 1000);
+      } else {
+        setMessage({ type: "error", text: data.message || "Invalid credentials" });
+      }
+    } catch (error) {
+      setMessage({ type: "error", text: "Network error. Please try again." });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,6 +66,12 @@ const Login = () => {
               Login using your email
             </p>
           </div>
+
+          {message.text && (
+            <div className={`mt-4 p-3 rounded-xl text-center font-semibold text-sm ${message.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+              {message.text}
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="mt-6 space-y-5">
             <div>
