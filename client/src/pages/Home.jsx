@@ -20,21 +20,21 @@ const Home = () => {
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Link
                 to="/report"
-                className="bg-white text-blue-700 font-semibold text-center py-4 rounded-2xl"
+                className="block bg-white text-blue-700 font-semibold text-center py-4 rounded-2xl"
               >
                 Report Problem
               </Link>
 
               <Link
                 to="/helpers"
-                className="bg-white text-green-700 font-semibold text-center py-4 rounded-2xl"
+                className="block bg-white text-green-700 font-semibold text-center py-4 rounded-2xl"
               >
                 Find Helpers
               </Link>
 
               <Link
                 to="/rating"
-                className="bg-white text-slate-700 font-semibold text-center py-4 rounded-2xl"
+                className="block bg-white text-slate-700 font-semibold text-center py-4 rounded-2xl"
               >
                 Give Rating
               </Link>
