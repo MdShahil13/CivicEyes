@@ -1,66 +1,51 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
 import HelperList from "../components/helper/HelperList";
 
-const allHelpers = [
-  {
-    id: 1,
-    name: "Ramesh Electrician",
-    category: "Electrician",
-    distance: 2.5,
-    rating: 4.8,
-    charge: 250,
-    available: true,
-    village: "Rampura",
-    phone: "9876543210",
-    reviews: 24,
-    expertise: "Wiring, meter, power faults",
-  },
-  {
-    id: 2,
-    name: "Suresh Plumber",
-    category: "Plumber",
-    distance: 4.2,
-    rating: 4.6,
-    charge: 300,
-    available: true,
-    village: "Lakshmipura",
-    phone: "9876501234",
-    reviews: 19,
-    expertise: "Pipe leakage, tank fitting",
-  },
-  {
-    id: 3,
-    name: "Mahesh Road Worker",
-    category: "Road Worker",
-    distance: 7.5,
-    rating: 4.4,
-    charge: 500,
-    available: true,
-    village: "Navapura",
-    phone: "9823456712",
-    reviews: 11,
-    expertise: "Road patch, mud cleaning",
-  },
-  {
-    id: 4,
-    name: "Kishan Cleaner",
-    category: "Cleaner",
-    distance: 9.1,
-    rating: 4.5,
-    charge: 200,
-    available: false,
-    village: "Ambali",
-    phone: "9898989898",
-    reviews: 16,
-    expertise: "Drainage and cleaning",
-  },
-];
-
 const Helpers = () => {
   const [searchRadius, setSearchRadius] = useState(5);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [allHelpers, setAllHelpers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchHelpers = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/users/helpers');
+        if (!response.ok) {
+          throw new Error('Failed to fetch helpers');
+        }
+        const data = await response.json();
+        
+        // Map backend user model to frontend HelperList expected format
+        const mappedHelpers = data.map((helper, index) => ({
+          id: helper._id,
+          name: helper.username,
+          category: helper.category || "General Helper",
+          // Calculate mock distance since location API is not present yet
+          distance: (index % 10) + 1, 
+          rating: 4.5,
+          charge: 300,
+          available: true,
+          village: helper.village || "Unknown",
+          phone: "Contact via App",
+          reviews: Math.floor(Math.random() * 30),
+          expertise: "Standard services",
+        }));
+        
+        setAllHelpers(mappedHelpers);
+      } catch (err) {
+        console.error("Error loading helpers:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHelpers();
+  }, []);
 
   const filteredHelpers = useMemo(() => {
     let helpers = allHelpers.filter((helper) => helper.distance <= searchRadius);
@@ -72,7 +57,7 @@ const Helpers = () => {
     }
 
     return helpers;
-  }, [searchRadius, selectedCategory]);
+  }, [allHelpers, searchRadius, selectedCategory]);
 
   const handleExpandSearch = () => {
     setSearchRadius(10);
@@ -144,7 +129,21 @@ const Helpers = () => {
           </div>
 
           <div className="mt-8">
-            <HelperList helpers={filteredHelpers} />
+            {loading ? (
+              <div className="text-center py-10">
+                <p className="text-slate-500 text-lg">Loading nearby helpers...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-10">
+                <p className="text-red-500 text-lg">{error}</p>
+              </div>
+            ) : filteredHelpers.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-slate-500 text-lg">No helpers found for this category and distance.</p>
+              </div>
+            ) : (
+              <HelperList helpers={filteredHelpers} />
+            )}
           </div>
         </div>
       </section>
